@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sul-dlss-labs/swagger-go-template/config"
+	"github.com/sul-dlss-labs/permissions-service/config"
 	baloo "gopkg.in/h2non/baloo.v3"
 )
 

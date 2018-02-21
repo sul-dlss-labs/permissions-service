@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/sul-dlss-labs/swagger-go-template/generated/models"
+	"github.com/sul-dlss-labs/permissions-service/generated/models"
 )
 
 // HealthCheckOKCode is the HTTP code returned for type HealthCheckOK

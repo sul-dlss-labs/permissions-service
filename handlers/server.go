@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-openapi/loads"
 	"github.com/justinas/alice"
-	app "github.com/sul-dlss-labs/swagger-go-template"
-	"github.com/sul-dlss-labs/swagger-go-template/generated/restapi"
-	"github.com/sul-dlss-labs/swagger-go-template/generated/restapi/operations"
-	"github.com/sul-dlss-labs/swagger-go-template/middleware"
+	app "github.com/sul-dlss-labs/permissions-service"
+	"github.com/sul-dlss-labs/permissions-service/generated/restapi"
+	"github.com/sul-dlss-labs/permissions-service/generated/restapi/operations"
+	"github.com/sul-dlss-labs/permissions-service/middleware"
 )
 
 // BuildAPI create new service API

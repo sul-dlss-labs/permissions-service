@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	app "github.com/sul-dlss-labs/swagger-go-template"
-	"github.com/sul-dlss-labs/swagger-go-template/config"
-	"github.com/sul-dlss-labs/swagger-go-template/generated/restapi"
-	"github.com/sul-dlss-labs/swagger-go-template/handlers"
+	app "github.com/sul-dlss-labs/permissions-service"
+	"github.com/sul-dlss-labs/permissions-service/config"
+	"github.com/sul-dlss-labs/permissions-service/generated/restapi"
+	"github.com/sul-dlss-labs/permissions-service/handlers"
 )
 
 func main() {
