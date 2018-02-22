@@ -1,5 +1,5 @@
-# app
-Description of app
+# Permissions service
+This service answers queries about what a certain user is authorized to do.  This service supports the TACO repository prototype.
 
 ## Go Local Development Setup
 
