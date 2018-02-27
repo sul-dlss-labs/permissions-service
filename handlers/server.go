@@ -20,6 +20,7 @@ func BuildAPI(rt *permissions.Runtime) *operations.PermissionsServiceAPI {
 	}
 	// Add custom handlers here
 	api.HealthCheckHandler = NewHealthCheck(rt)
+	api.QueryActionHandler = NewQueryAction(rt)
 
 	return api
 }
