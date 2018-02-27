@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	app "github.com/sul-dlss-labs/permissions-service"
+	permissions "github.com/sul-dlss-labs/permissions-service"
 	"github.com/sul-dlss-labs/permissions-service/config"
 	"github.com/sul-dlss-labs/permissions-service/generated/restapi"
 	"github.com/sul-dlss-labs/permissions-service/handlers"
 )
 
 func main() {
-	rt, err := app.NewRuntime(config.NewConfig())
+	rt, err := permissions.NewRuntime(config.NewConfig())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -22,7 +22,7 @@ func main() {
 	}
 }
 
-func createServer(rt *app.Runtime) *restapi.Server {
+func createServer(rt *permissions.Runtime) *restapi.Server {
 	api := handlers.BuildAPI(rt)
 	server := restapi.NewServer(api)
 	server.SetHandler(handlers.BuildHandler(api))
