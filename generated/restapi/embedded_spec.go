@@ -19,15 +19,15 @@ func init() {
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Template Application",
-    "title": "app",
+    "description": "Answers queries about who make take actions on repository resources. Primarily for usage by TACO.",
+    "title": "Permissions Service",
     "license": {
       "name": "Apache 2.0",
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "0.1.0"
+    "version": "0.0.1"
   },
-  "host": "app.dlss.stanford.edu",
+  "host": "permissions.dlss.stanford.edu",
   "basePath": "/v1",
   "paths": {
     "/healthcheck": {
@@ -46,6 +46,53 @@ func init() {
             "description": "The service is not working correctly",
             "schema": {
               "$ref": "#/definitions/HealthCheckResponse"
+            }
+          }
+        }
+      }
+    },
+    "/permissions/{Action}/{Resource}": {
+      "get": {
+        "description": "Given an Agent and a top level action, (e.g. \"create\", \"update\"), is the user permitted to carry out this function",
+        "summary": "Query for permission",
+        "operationId": "queryAction",
+        "security": [
+          {
+            "RemoteUser": []
+          }
+        ],
+        "parameters": [
+          {
+            "enum": [
+              "create",
+              "update",
+              "destroy"
+            ],
+            "type": "string",
+            "description": "The action the Agent taking on the object",
+            "name": "Action",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The identifier of a particular resource, or of a resouce class when the Action is \"create\"",
+            "name": "Resource",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The query result",
+            "schema": {
+              "$ref": "#/definitions/QueryResponse"
+            }
+          },
+          "404": {
+            "description": "Unable to find the specified resource or resource class",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
         }
@@ -99,6 +146,25 @@ func init() {
       "example": {
         "status": "OK"
       }
+    },
+    "QueryResponse": {
+      "type": "object",
+      "properties": {
+        "authorized": {
+          "description": "The result of the authorization query",
+          "type": "boolean"
+        }
+      },
+      "example": {
+        "authorized": true
+      }
+    }
+  },
+  "securityDefinitions": {
+    "RemoteUser": {
+      "type": "apiKey",
+      "name": "On-Behalf-Of",
+      "in": "header"
     }
   }
 }`))

@@ -11,18 +11,19 @@ import (
 	middleware "github.com/go-openapi/runtime/middleware"
 	graceful "github.com/tylerb/graceful"
 
+	permissions "github.com/sul-dlss-labs/permissions-service"
 	"github.com/sul-dlss-labs/permissions-service/generated/restapi/operations"
 )
 
 // This file is safe to edit. Once it exists it will not be overwritten
 
-//go:generate swagger generate server --target ../generated --name  --spec ../swagger.json --exclude-main
+//go:generate swagger generate server --target ../generated --name  --spec ../swagger.json --principal permissions.Agent --exclude-main
 
-func configureFlags(api *operations.AppAPI) {
+func configureFlags(api *operations.PermissionsServiceAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
 
-func configureAPI(api *operations.AppAPI) http.Handler {
+func configureAPI(api *operations.PermissionsServiceAPI) http.Handler {
 	// configure the api here
 	api.ServeError = errors.ServeError
 
@@ -36,8 +37,22 @@ func configureAPI(api *operations.AppAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
+	// Applies when the "On-Behalf-Of" header is set
+	api.RemoteUserAuth = func(token string) (*permissions.Agent, error) {
+		return nil, errors.NotImplemented("api key auth (RemoteUser) On-Behalf-Of from header param [On-Behalf-Of] has not yet been implemented")
+	}
+
+	// Set your custom authorizer if needed. Default one is security.Authorized()
+	// Expected interface runtime.Authorizer
+	//
+	// Example:
+	// api.APIAuthorizer = security.Authorized()
+
 	api.HealthCheckHandler = operations.HealthCheckHandlerFunc(func(params operations.HealthCheckParams) middleware.Responder {
 		return middleware.NotImplemented("operation .HealthCheck has not yet been implemented")
+	})
+	api.QueryActionHandler = operations.QueryActionHandlerFunc(func(params operations.QueryActionParams, principal *permissions.Agent) middleware.Responder {
+		return middleware.NotImplemented("operation .QueryAction has not yet been implemented")
 	})
 
 	api.ServerShutdown = func() {}

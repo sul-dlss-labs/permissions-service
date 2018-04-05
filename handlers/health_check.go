@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"github.com/go-openapi/runtime/middleware"
-	app "github.com/sul-dlss-labs/permissions-service"
+	permissions "github.com/sul-dlss-labs/permissions-service"
 	"github.com/sul-dlss-labs/permissions-service/generated/models"
 	"github.com/sul-dlss-labs/permissions-service/generated/restapi/operations"
 )
 
 // NewHealthCheck will return the service health
-func NewHealthCheck(rt *app.Runtime) operations.HealthCheckHandler {
+func NewHealthCheck(rt *permissions.Runtime) operations.HealthCheckHandler {
 	return &healthCheck{}
 }
 

@@ -1,4 +1,4 @@
-package app
+package permissions
 
 import (
 	"github.com/sul-dlss-labs/permissions-service/config"

@@ -18,11 +18,12 @@ import (
 	spec "github.com/go-openapi/spec"
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	permissions "github.com/sul-dlss-labs/permissions-service"
 )
 
-// NewAppAPI creates a new App instance
-func NewAppAPI(spec *loads.Document) *AppAPI {
-	return &AppAPI{
+// NewPermissionsServiceAPI creates a new PermissionsService instance
+func NewPermissionsServiceAPI(spec *loads.Document) *PermissionsServiceAPI {
+	return &PermissionsServiceAPI{
 		handlers:            make(map[string]map[string]http.Handler),
 		formats:             strfmt.Default,
 		defaultConsumes:     "application/json",
@@ -38,11 +39,22 @@ func NewAppAPI(spec *loads.Document) *AppAPI {
 		HealthCheckHandler: HealthCheckHandlerFunc(func(params HealthCheckParams) middleware.Responder {
 			return middleware.NotImplemented("operation HealthCheck has not yet been implemented")
 		}),
+		QueryActionHandler: QueryActionHandlerFunc(func(params QueryActionParams, principal *permissions.Agent) middleware.Responder {
+			return middleware.NotImplemented("operation QueryAction has not yet been implemented")
+		}),
+
+		// Applies when the "On-Behalf-Of" header is set
+		RemoteUserAuth: func(token string) (*permissions.Agent, error) {
+			return nil, errors.NotImplemented("api key auth (RemoteUser) On-Behalf-Of from header param [On-Behalf-Of] has not yet been implemented")
+		},
+
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
-/*AppAPI Template Application */
-type AppAPI struct {
+/*PermissionsServiceAPI Answers queries about who make take actions on repository resources. Primarily for usage by TACO. */
+type PermissionsServiceAPI struct {
 	spec            *loads.Document
 	context         *middleware.Context
 	handlers        map[string]map[string]http.Handler
@@ -67,8 +79,17 @@ type AppAPI struct {
 	// JSONProducer registers a producer for a "application/json" mime type
 	JSONProducer runtime.Producer
 
+	// RemoteUserAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key On-Behalf-Of provided in the header
+	RemoteUserAuth func(string) (*permissions.Agent, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
+
 	// HealthCheckHandler sets the operation handler for the health check operation
 	HealthCheckHandler HealthCheckHandler
+	// QueryActionHandler sets the operation handler for the query action operation
+	QueryActionHandler QueryActionHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -86,42 +107,42 @@ type AppAPI struct {
 }
 
 // SetDefaultProduces sets the default produces media type
-func (o *AppAPI) SetDefaultProduces(mediaType string) {
+func (o *PermissionsServiceAPI) SetDefaultProduces(mediaType string) {
 	o.defaultProduces = mediaType
 }
 
 // SetDefaultConsumes returns the default consumes media type
-func (o *AppAPI) SetDefaultConsumes(mediaType string) {
+func (o *PermissionsServiceAPI) SetDefaultConsumes(mediaType string) {
 	o.defaultConsumes = mediaType
 }
 
 // SetSpec sets a spec that will be served for the clients.
-func (o *AppAPI) SetSpec(spec *loads.Document) {
+func (o *PermissionsServiceAPI) SetSpec(spec *loads.Document) {
 	o.spec = spec
 }
 
 // DefaultProduces returns the default produces media type
-func (o *AppAPI) DefaultProduces() string {
+func (o *PermissionsServiceAPI) DefaultProduces() string {
 	return o.defaultProduces
 }
 
 // DefaultConsumes returns the default consumes media type
-func (o *AppAPI) DefaultConsumes() string {
+func (o *PermissionsServiceAPI) DefaultConsumes() string {
 	return o.defaultConsumes
 }
 
 // Formats returns the registered string formats
-func (o *AppAPI) Formats() strfmt.Registry {
+func (o *PermissionsServiceAPI) Formats() strfmt.Registry {
 	return o.formats
 }
 
 // RegisterFormat registers a custom format validator
-func (o *AppAPI) RegisterFormat(name string, format strfmt.Format, validator strfmt.Validator) {
+func (o *PermissionsServiceAPI) RegisterFormat(name string, format strfmt.Format, validator strfmt.Validator) {
 	o.formats.Add(name, format, validator)
 }
 
-// Validate validates the registrations in the AppAPI
-func (o *AppAPI) Validate() error {
+// Validate validates the registrations in the PermissionsServiceAPI
+func (o *PermissionsServiceAPI) Validate() error {
 	var unregistered []string
 
 	if o.JSONConsumer == nil {
@@ -132,8 +153,16 @@ func (o *AppAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.RemoteUserAuth == nil {
+		unregistered = append(unregistered, "OnBehalfOfAuth")
+	}
+
 	if o.HealthCheckHandler == nil {
 		unregistered = append(unregistered, "HealthCheckHandler")
+	}
+
+	if o.QueryActionHandler == nil {
+		unregistered = append(unregistered, "QueryActionHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -144,26 +173,38 @@ func (o *AppAPI) Validate() error {
 }
 
 // ServeErrorFor gets a error handler for a given operation id
-func (o *AppAPI) ServeErrorFor(operationID string) func(http.ResponseWriter, *http.Request, error) {
+func (o *PermissionsServiceAPI) ServeErrorFor(operationID string) func(http.ResponseWriter, *http.Request, error) {
 	return o.ServeError
 }
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
-func (o *AppAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
+func (o *PermissionsServiceAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
 
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name, scheme := range schemes {
+		switch name {
+
+		case "RemoteUser":
+
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, func(token string) (interface{}, error) {
+				return o.RemoteUserAuth(token)
+			})
+
+		}
+	}
+	return result
 
 }
 
 // Authorizer returns the registered authorizer
-func (o *AppAPI) Authorizer() runtime.Authorizer {
+func (o *PermissionsServiceAPI) Authorizer() runtime.Authorizer {
 
-	return nil
+	return o.APIAuthorizer
 
 }
 
 // ConsumersFor gets the consumers for the specified media types
-func (o *AppAPI) ConsumersFor(mediaTypes []string) map[string]runtime.Consumer {
+func (o *PermissionsServiceAPI) ConsumersFor(mediaTypes []string) map[string]runtime.Consumer {
 
 	result := make(map[string]runtime.Consumer)
 	for _, mt := range mediaTypes {
@@ -179,7 +220,7 @@ func (o *AppAPI) ConsumersFor(mediaTypes []string) map[string]runtime.Consumer {
 }
 
 // ProducersFor gets the producers for the specified media types
-func (o *AppAPI) ProducersFor(mediaTypes []string) map[string]runtime.Producer {
+func (o *PermissionsServiceAPI) ProducersFor(mediaTypes []string) map[string]runtime.Producer {
 
 	result := make(map[string]runtime.Producer)
 	for _, mt := range mediaTypes {
@@ -195,7 +236,7 @@ func (o *AppAPI) ProducersFor(mediaTypes []string) map[string]runtime.Producer {
 }
 
 // HandlerFor gets a http.Handler for the provided operation method and path
-func (o *AppAPI) HandlerFor(method, path string) (http.Handler, bool) {
+func (o *PermissionsServiceAPI) HandlerFor(method, path string) (http.Handler, bool) {
 	if o.handlers == nil {
 		return nil, false
 	}
@@ -210,8 +251,8 @@ func (o *AppAPI) HandlerFor(method, path string) (http.Handler, bool) {
 	return h, ok
 }
 
-// Context returns the middleware context for the app API
-func (o *AppAPI) Context() *middleware.Context {
+// Context returns the middleware context for the permissions service API
+func (o *PermissionsServiceAPI) Context() *middleware.Context {
 	if o.context == nil {
 		o.context = middleware.NewRoutableContext(o.spec, o, nil)
 	}
@@ -219,7 +260,7 @@ func (o *AppAPI) Context() *middleware.Context {
 	return o.context
 }
 
-func (o *AppAPI) initHandlerCache() {
+func (o *PermissionsServiceAPI) initHandlerCache() {
 	o.Context() // don't care about the result, just that the initialization happened
 
 	if o.handlers == nil {
@@ -231,11 +272,16 @@ func (o *AppAPI) initHandlerCache() {
 	}
 	o.handlers["GET"]["/healthcheck"] = NewHealthCheck(o.context, o.HealthCheckHandler)
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/permissions/{Action}/{Resource}"] = NewQueryAction(o.context, o.QueryActionHandler)
+
 }
 
 // Serve creates a http handler to serve the API over HTTP
 // can be used directly in http.ListenAndServe(":8000", api.Serve(nil))
-func (o *AppAPI) Serve(builder middleware.Builder) http.Handler {
+func (o *PermissionsServiceAPI) Serve(builder middleware.Builder) http.Handler {
 	o.Init()
 
 	if o.Middleware != nil {
@@ -245,7 +291,7 @@ func (o *AppAPI) Serve(builder middleware.Builder) http.Handler {
 }
 
 // Init allows you to just initialize the handler cache, you can then recompose the middelware as you see fit
-func (o *AppAPI) Init() {
+func (o *PermissionsServiceAPI) Init() {
 	if len(o.handlers) == 0 {
 		o.initHandlerCache()
 	}
