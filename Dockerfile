@@ -10,4 +10,4 @@ RUN apk update && \
 WORKDIR /go/src/github.com/sul-dlss-labs/my_app/cmd/app
 RUN go install .
 
-CMD ["appd"]
+CMD ["app"]
