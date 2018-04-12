@@ -39,8 +39,8 @@ $ APP_PORT=1231 go run main.go
 
 ### Building for Docker
 ```shell
-$ docker build -t myapp  .
-$ docker run -p 8080:8080 myapp
+$ docker build -t permissions-service  .
+$ docker run -p 8080:8080 permissions-service
 ```
 
 ### Build for the local OS
