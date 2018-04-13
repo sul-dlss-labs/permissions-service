@@ -11,7 +11,7 @@ This service answers queries about what a certain user is authorized to do.  Thi
       $ export PATH=~/go/bin:$PATH
       $ cd ~/go
       ```
-      Your Go code repositories will reside within `~/go/src/...` in the `$GOPATH`. Name these paths to avoid library clash, for example MyApp Go code could be in `~/go/src/github.com/sul-dlss-labs/permissions-service`. This should be where your Github repository resides too.
+      Your Go code repositories will reside within `~/go/src/...` in the `$GOPATH`. Name these paths to avoid library clash, for example permissions-service Go code could be in `~/go/src/github.com/sul-dlss-labs/permissions-service`. This should be where your Github repository resides too.
 3. In order to download the project code to `~/go/src/github.com/sul-dlss-labs/permissions-service`, from any directory in your ``$GOPATH`, run:
     ```bash
     $ go get github.com/sul-dlss-labs/permissions-service
