@@ -6,8 +6,3 @@ RUN apk update && \
     go get -u github.com/golang/dep/cmd/dep && \
     dep ensure && \
     apk del .build-deps
-RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags "-s" -a -installsuffix cgo cmd/app/main.go
-
-FROM scratch
-COPY --from=BASE /go/src/github.com/sul-dlss-labs/permissions-service/main .
-CMD ["./main"]

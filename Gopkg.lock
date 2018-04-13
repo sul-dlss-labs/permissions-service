@@ -93,6 +93,7 @@
   name = "github.com/go-openapi/runtime"
   packages = [
     ".",
+    "client",
     "flagext",
     "logger",
     "middleware",
@@ -218,6 +219,7 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "idna",
     "publicsuffix"
   ]
@@ -301,6 +303,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "dc483eeaae7c26ea97f01c93fb1029a85cda6cdefb6cebf2786b5a17d7950745"
+  inputs-digest = "a702b422f94c53fbe2df829a6ae206fd3cad22c83a9ce4c5e74ab7dd28a173ae"
   solver-name = "gps-cdcl"
   solver-version = 1

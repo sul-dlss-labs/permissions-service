@@ -1,0 +1,38 @@
+{
+    "containerDefinitions": [
+        {
+            "name": "permissions",
+            "image": "suldlss/permissions-service:REPLACE_TAG",
+            "essential": true,
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "infrastucture",
+                    "awslogs-region": "REPLACE_REGION",
+                    "awslogs-stream-prefix": "permissions"
+                }
+            },
+            "portMappings": [
+                {
+                    "containerPort": 8082,
+                    "hostPort": 8082
+                }
+            ],
+            "environment": [
+                {
+                    "name": "APP_PORT",
+                    "value": "8082"
+                }
+            ]
+        }
+    ],
+    "cpu": "256",
+    "memory": "0.5GB",
+    "networkMode": "awsvpc",
+    "family": "permissions",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "executionRoleArn": "arn:aws:iam::REPLACE_ACCOUNT_ID:role/REPLACE_ENVIRONMENT-ecs-task-execution-role",
+    "taskRoleArn": "arn:aws:iam::REPLACE_ACCOUNT_ID:role/permissions-REPLACE_ENVIRONMENT-ecs-task-role"
+}
